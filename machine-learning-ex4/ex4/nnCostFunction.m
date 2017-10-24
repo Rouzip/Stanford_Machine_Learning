@@ -63,12 +63,44 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
+% 添加bias元素
+X = [ones(m, 1) X];
 
+% 输入元素
+a1 = X;
+% 第二层输入值
+z2 = a1 * Theta1';
+% 作用激励函数
+a2 = sigmoid(z2);
+% 添加bias元素
+a2 = [ones(m, 1) a2];
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
 
+h0 = a3;    % size(5000,10)
 
+% 构建所有y值的集合
+all_y = eye(num_labels)(y, :); % size(5000,10)
+% 计算代价矩阵
+costs = -(all_y .* log(h0)) - (1 - all_y) .* log(1 - h0);
+% 矩阵求和，算出最终的代价函数值
+J = sum(sum(costs, 2)) / m;
 
+% 去除bias项
+Theta1_nobias = Theta1(:, 2:end);
+Theta2_nobias = Theta2(:, 2:end);
 
+% 添加正则项
+regularization = sum(sum(Theta1_nobias.^2)) + sum(sum(Theta2_nobias.^2));
+J = J + lambda / (2 * m) * regularization;
 
+% 后向传播
+delta3 = a3 - all_y;
+delta2 = (delta3 * Theta2)(:,2:end) .* sigmoidGradient(z2);
+Delta1 = delta2' * a1;
+Delta2 = delta3' * a2;
+Theta1_grad = Delta1 / m + lambda * [zeros(hidden_layer_size, 1) Theta1(:, 2:end)] / m;
+Theta2_grad = Delta2 / m + lambda * [zeros(num_labels, 1) Theta2(:, 2:end)] / m;
 
 
 
