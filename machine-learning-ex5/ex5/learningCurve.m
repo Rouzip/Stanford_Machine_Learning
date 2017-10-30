@@ -53,7 +53,14 @@ error_val   = zeros(m, 1);
 
 % ---------------------- Sample Solution ----------------------
 
+val_size = size(Xval, 1);
 
+for i = 1:m,
+	% 获取theta，然后使用给定的函数找出训练集误差和交叉检测集误差
+	[theta] = trainLinearReg([ones(i, 1) X(1:i, :)], y(1:i), lambda);
+	[error_train(i), grad] = linearRegCostFunction([ones(i, 1) X(1:i, :)], y(1:i), theta, 0);
+	[error_val(i), grad] = linearRegCostFunction([ones(val_size, 1) Xval], yval, theta, 0);
+end
 
 
 
