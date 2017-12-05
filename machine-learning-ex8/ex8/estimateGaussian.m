@@ -21,7 +21,11 @@ sigma2 = zeros(n, 1);
 %               should contain variance of the i-th feature.
 %
 
+% 计算每列的平均值，然后将其转置为列向量
+mu = mean(X, 1)';
 
+% 使用var函数进行计算方差，但是由于其为/(1-m)，所以需要改变其对应的系数
+sigma2 = (var(X) * (m - 1) / m)';
 
 
 

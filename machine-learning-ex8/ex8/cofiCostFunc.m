@@ -41,9 +41,15 @@ Theta_grad = zeros(size(Theta));
 %
 
 
+h = X * Theta';
 
+% 协同滤波算法代价函数
+J = (sum(sum(R .* (h - Y).^2)) + lambda * sum(sum(Theta .^ 2)) + lambda * sum(sum(X .^ 2))) / 2;
 
+% 梯度函数，增加lambda正则项
+X_grad = lambda * X + R .* (h - Y) * Theta;
 
+Theta_grad = (R .* (h - Y))' * X + lambda * Theta;
 
 
 
