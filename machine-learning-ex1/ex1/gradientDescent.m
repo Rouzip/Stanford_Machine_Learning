@@ -23,7 +23,6 @@ for iter = 1:num_iters
     tmp3 = tmp2.*X;
     tmp4 = sum(tmp3);
     t = alpha*(1/m)*tmp4;
-    disp(t);
 
     theta = theta - t';
 

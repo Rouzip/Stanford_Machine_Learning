@@ -20,6 +20,7 @@ W = zeros(L_out, 1 + L_in);
 %
 
 
+% 随机初始化权重防止梯度消失
 epsilon_init = 0.12;
 W = rand(L_out, 1 + L_in) * 2 * epsilon_init - epsilon_init;
 

@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 from scipy import io
 from sklearn.linear_model import LinearRegression
 
@@ -38,13 +39,13 @@ def plot_data(X, y, Xlabel, ylabel):
 def compute_cost(X: np.matrix, y: np.matrix, theta: np.matrix)->float:
     m = len(y)
     # 最小二乘法计算损失
-    tmp = np.dot(X, theta.T)-y
-    loss = 1/(2*m)*np.dot(tmp.T, tmp)
+    tmp = np.dot(X, theta.T) - y
+    loss = 1 / (2 * m) * np.dot(tmp.T, tmp)
     return loss
 
 
 if __name__ == '__main__':
-    # part1
+    # part1 compute the linear
     # 从文件之中读取数据
     X, y = load_data('./ex1data1.txt')
     plot_data(X, y, 'Profit in $10,000s', 'Population of City in 10,000s')
@@ -57,10 +58,10 @@ if __name__ == '__main__':
     model.fit(train, y)
     plt.figure(1)
     predict = model.predict(train)
-    plt.plot(X, predict)
+    # plt.plot(X, predict)
     # plt.show()
 
-    # part2
+    # part2 J_loss surf
     theta1 = np.linspace(-10, 10, 100)
     theta2 = np.linspace(-1, 4, 100)
     # 存储损失，后面画出等线图
@@ -69,13 +70,23 @@ if __name__ == '__main__':
         for j, n in enumerate(theta2):
             theta = np.array([m, n]).T
             J_all[i][j] = compute_cost(train, y, theta)
+    T1, T2 = np.meshgrid(theta1, theta2)
+
     pic = plt.figure(2)
     ax = pic.gca(projection='3d')
-    surf = ax.plot_surface(theta1, theta2, J_all, cmap=cm.coolwarm,
+    # ax = pic.add_subplot(111, projection=Axes3D.name)
+    surf = ax.plot_surface(T1, T2, J_all.T, cmap=cm.coolwarm,
                            linewidth=0, antialiased=False)
-    ax.set_zlim(-1.01, 1.01)
-    ax.zaxis.set_major_locator(LinearLocator(10))
+    # ax.set_zlim(-1.01, 1.01)
+    # ax.zaxis.set_major_locator(LinearLocator(10))
 
-    pic.colorbar(surf, shrink=0.5, aspect=5)
+    # pic.colorbar(surf, shrink=0.5, aspect=5)
+    ax.view_init(elev=15, azim=-118)
+    plt.show()
 
+    # part3 contour
+    plt.figure(3)
+    cs = plt.contour(T1, T2, J_all.T,
+                     np.logspace(-2, 3, 20),
+                     colors=('r', 'green', 'blue', (1, 1, 0), '#afeeee', '0.5'))
     plt.show()

@@ -39,7 +39,9 @@ for i = 1:length(CTest),
 	end
 end
 
+% 找出误差最小的索引
 [dummy, ind] = min(errors(:));
+% 从索引转换成下标
 [i, j] = ind2sub([size(errors, 1), size(errors, 2)], ind);
 C = CTest(i);
 sigma = sigmaTest(j);

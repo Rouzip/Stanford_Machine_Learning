@@ -21,8 +21,9 @@ p = zeros(size(X, 1), 1);
 %       can use max(A, [], 2) to obtain the max for each row.
 %
 
-
+% 概率
 prob = ones(m, 1);
+% label
 p = ones(m, 1);
 
 % 不要对参数本身进行更改？
