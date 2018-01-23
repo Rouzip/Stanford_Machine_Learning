@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from mpl_toolkits.mplot3d.axes3d import Axes3D
+from sklearn.linear_model import LinearRegression
 
 
 def load_data(filename):
@@ -33,22 +34,11 @@ def plot_data(X, y, Xlabel, ylabel):
     plt.show()
 
 
-def gradient_descent(X, y, theta, alpha, iterations):
-    m = len(y)
-    J_history = np.zeros((iterations, 1))
-
-    for i in range(iterations):
-        t = alpha * np.sum(((X@theta).T - y).T * X, axis=0) / m
-        theta = (theta.T - t).T
-        J_history[i] = compute_cost(X, y, theta)
-    return theta
-
-
 def compute_cost(X: np.matrix, y: np.matrix, theta: np.matrix)->float:
     m = len(y)
     # 最小二乘法计算损失
-    tmp = (X@theta).T - y
-    loss = 1 / (2 * m) * tmp@tmp.T
+    tmp = np.dot(X, theta.T) - y
+    loss = 1 / (2 * m) * np.dot(tmp.T, tmp)
     return loss
 
 
@@ -56,32 +46,18 @@ if __name__ == '__main__':
     # part1 compute the linear
     # 从文件之中读取数据
     X, y = load_data('./ex1data1.txt')
-    # plot_data(X, y, 'Profit in $10,000s', 'Population of City in 10,000s')
+    plot_data(X, y, 'Profit in $10,000s', 'Population of City in 10,000s')
+    # 使用线性回归进行模拟
+    model = LinearRegression()
     # 对数据进行处理，形式变为列的形式
     train = X.T
     # 添加偏置
     train = np.concatenate((np.ones((X.shape[0], 1)), X[:, None]), axis=1)
-    theta = np.zeros((2, 1))
-    iterations = 1500
-    alpha = 0.01
-    J = compute_cost(train, y, theta)
-    # 预期损失32.07
-    print(J)
-    J = compute_cost(train, y, np.array([-1, 2]).T)
-    # 预期损失54.24
-    print(J)
-    theta = gradient_descent(train, y, theta, alpha, iterations)
-    # 预期theta为-3.6303  1.1664
-    print('theta', theta)
-    fig = plt.figure(1)
-    ax = fig.add_subplot(111)
-    ax.scatter(X, y, s=75, marker='s',
-               c='b', alpha=0.5, label='Admitted')
-    ax.plot(X, train@theta, '-')
+    model.fit(train, y)
+    plt.figure(1)
+    predict = model.predict(train)
+    plt.plot(X, predict)
     plt.show()
-    predict1 = np.array([1, 3.5])@theta
-    predict2 = np.array([1, 7])@theta
-    print(predict1, predict2)
 
     # part2 J_loss surf
     theta1 = np.linspace(-10, 10, 100)
