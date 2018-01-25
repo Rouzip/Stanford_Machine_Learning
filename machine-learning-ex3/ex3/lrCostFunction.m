@@ -43,6 +43,7 @@ regularized = thetaTmp' * thetaTmp * lambda / 2;
 
 J = 1 / m * (-(y' * log(sigmoid(X * theta))) - (1 - y)' * log(1 - sigmoid(X * theta)) + regularized);
 
+disp((sigmoid(X*theta)-y)/m);
 
 grad = X' * (sigmoid(X * theta) - y) / m + lambda * thetaTmp / m;
 
