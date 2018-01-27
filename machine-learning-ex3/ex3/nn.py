@@ -1,4 +1,5 @@
 import random
+import time
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,9 +41,11 @@ if __name__ == '__main__':
     result = np.mean((pred + 1) % 10 == y % 10)
     print('准确率为：' + str(result))
 
-    import time
+    # 初始化时间种子
     random.seed(time.time())
+    # 从5000个图片之中选择一幅
     num = random.choice(range(5000))
     plot_data(X[num, :].reshape((1, -1)))
     pred = predict(Theta1, Theta2, X[num, :].reshape((1, -1)))
+    # 下标的原因，所以使用+1再模10
     print('数字为 ' + str((pred + 1) % 10))

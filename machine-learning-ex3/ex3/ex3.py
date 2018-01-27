@@ -49,7 +49,6 @@ def sigmoid(z)->np.float:
     '''
     自己实现的sigmoid函数
     '''
-    h = np.zeros((z.shape))
     h = 1.0 / (1.0 + np.exp(-z))
     return h
 
