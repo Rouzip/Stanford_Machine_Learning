@@ -1,27 +1,29 @@
+from decimal import Decimal
+
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import random
 from scipy import io
 from scipy.special import expit
+from scipy.optimize import minimize
 
 
 def plot_data(X, example_width=None):
-    # ¼ÙÈçÍ¼Æ¬¿í¶ÈÎ´Ö¸¶¨£¬Ê¹ÓÃ¾ØÕóĞĞÏòÁ¿¿ª¸ùºÅµÄ³¤¶È
+    # å¦‚æœå›¾ç‰‡å®½åº¦æœªæŒ‡å®šï¼Œåˆ™é»˜è®¤ä½¿ç”¨æ ¹å·æ•°é‡ä½œä¸ºé»˜è®¤å€¼
     plt.close()
     plt.figure()
     m, n = X.shape
     if not example_width:
         example_width = np.int32(np.round(np.sqrt(n)))
-    # Õ¹Ê¾»Ò¶ÈÍ¼Ïñ
+    # æ˜¾ç¤ºç°åº¦å›¾åƒ
     plt.set_cmap('gray')
     example_height = np.int32(n / example_width)
 
-    # Ã¿ĞĞÕ¹Ê¾¶àÉÙºÍÃ¿ÁĞÕ¹Ê¾¶àÉÙÍ¼Æ¬
     display_rows = np.int32(np.floor(np.sqrt(m)))
     display_cols = np.int32(np.ceil(m / display_rows))
 
     pad = 1
-    # ³õÊ¼»¯¿ÕÊı×éÓÃÓÚºóÃæ½áºÏÕ¹Ê¾Í¼Æ¬
+    # å±•ç¤ºå›¾ç‰‡çš„æ•°ç»„
     display_array = -np.ones((pad + display_rows * (example_height + pad),
                               pad + display_cols * (example_width + pad)))
     curr_ex = 0
@@ -30,7 +32,7 @@ def plot_data(X, example_width=None):
             if curr_ex >= m:
                 break
             max_val = np.max(np.abs(X[curr_ex, :]))
-            # order = 'F'ÊÇÎªÁË±£Ö¤Í¼ÏñÊÇÕıµÄ£¬·ñÔòÊÇ×ªÖÃµÄ
+            # order = 'F'ä½¿å…¶åˆ—ä¼˜å…ˆï¼Œå¦åˆ™numpyé»˜è®¤è¡Œä¼˜å…ˆ
             display_array[pad + i * (example_height + pad):
                           pad + i * (example_height + pad) + example_height,
                           pad + j * (example_width + pad):
@@ -57,20 +59,22 @@ def nn_cost_funciton(nn_params,
                      input_layer_size,
                      hidden_layer_size,
                      num_labels,
-                     X, y, lambda_):
+                     X, y, lambda_, grad_value=False):
     m = X.shape[0]
-    # ½«³ÉÎªÁĞµÄÏµÊı¾ØÕó»¹Ô­
+    # å°†ç³»æ•°çŸ©é˜µè¿˜åŸ
+
     Theta1 = np.reshape(nn_params[:hidden_layer_size * (input_layer_size + 1)],
                         (hidden_layer_size, input_layer_size + 1))
     Theta2 = np.reshape(nn_params[hidden_layer_size * (input_layer_size + 1):],
                         (num_labels, hidden_layer_size + 1))
-    # ¼ÆËã³öÉñ¾­ÍøÂçÔ¤²â½á¹û
+
+    # è®¡ç®—æ­£å‘æŸå¤±
     a1 = np.hstack((np.ones((m, 1)), X))
-    z2 = sigmoid(a1@Theta1.T)
-    a2 = np.hstack((np.ones((m, 1)), z2))
+    z2 = a1@Theta1.T
+    a2 = np.hstack((np.ones((m, 1)), sigmoid(z2)))
     h = sigmoid(a2@Theta2.T)
 
-    # ¼ÆËã³öËğÊ§º¯Êı
+    # å°†yå€¼çŸ©é˜µåŒ–
     all_y = np.zeros((m, num_labels))
     for i in range(m):
         all_y[i, y[i] - 1] = 1
@@ -82,14 +86,26 @@ def nn_cost_funciton(nn_params,
     J = np.sum(np.sum(cost_tmp, axis=1)) / m + lambda_ * reg / (2 * m)
 
     delta3 = h - all_y
-    delta2 = (Theta2@delta3)[:, 1:] * sigmoid_gradient(z2)
 
-    return J
+    # print(Theta1.shape, Theta2.shape, delta3.shape)
+    delta2 = (delta3@Theta2)[:, 1:] * sigmoid_gradient(z2)
+    Delta1 = delta2.T@a1
+    Delta2 = delta3.T@a2
+    Theta1_grad = Delta1/m + lambda_*np.hstack((
+        np.zeros((hidden_layer_size, 1)), Theta1[:, 1:]))/m
+    Theta2_grad = Delta2/m + lambda_*np.hstack((
+        np.zeros((num_labels, 1)), Theta2[:, 1:]))/m
+    grad = np.concatenate((Theta1_grad.reshape((-1, 1)),
+                           Theta2_grad.reshape((-1, 1))))
+    if grad_value:
+        return J, grad
+    else:
+        return J
 
 
 def rand_initial_weights(L_in, L_out):
     epsilon_init = 0.12
-    W = random.ranf((L_out, L_in + 1)) * 2 * epsilon_init - epsilon_init
+    W = np.random.rand(L_out, 1 + L_in) * (2*epsilon_init) - epsilon_init
     return W
 
 
@@ -112,40 +128,57 @@ def check_nn_grandients(lambda_=0):
     num_labels = 3
     m = 5
     Theta1 = debug_initialize_weights(hidden_layer_size, input_layer_size)
-    Theta2 = debug_initialize_weights(input_layer_size, num_labels)
+    Theta2 = debug_initialize_weights(num_labels, hidden_layer_size)
     X = debug_initialize_weights(m, input_layer_size - 1)
     y = 1 + np.array(range(1, m + 1)) % num_labels
     nn_params = np.concatenate((Theta1.reshape(-1, 1),
                                 Theta2.reshape(-1, 1)))
-    cost, grad = nn_cost_funciton(nn_params,
-                                  input_layer_size,
-                                  hidden_layer_size,
-                                  num_labels,
-                                  X, y, lambda_)
-    numgrad = compute_numberical_gradient(nn_cost_funciton, nn_params)
-    diff = (numgrad - grad).size / (numgrad + grad).size
+    def cost_func(p):
+        return nn_cost_funciton(p, input_layer_size, hidden_layer_size,
+                                num_labels, X, y, lambda_, True)
+
+    J, grad = cost_func(nn_params)
+    numgrad = compute_numberical_gradient(cost_func, nn_params)
+    for numerical, analytical in zip(numgrad, grad):
+        print((numerical, analytical))
+
+    # ç§‘å­¦è®¡æ•°æ³•æ˜¾ç¤ºè¯¯å·®
+    diff = Decimal(np.linalg.norm(numgrad-grad)) / \
+        Decimal(np.linalg.norm(numgrad+grad))
+    print(diff)
 
 
 def debug_initialize_weights(fan_out, fan_in):
-    # ×îÖÕ»ñÈ¡µÄwµÄshape
-    W_shape = (fan_out, fan_in + 1)
-    # Ê¹ÓÃsinº¯ÊıÀ´»ñÈ¡Êı¾İ
-    W = np.sin(range(1, fan_out * (fan_in + 1) + 1)).reshape(W_shape) / 10
+    # æƒé‡çŸ©é˜µçš„å½¢çŠ¶
+    W_shape = ((fan_out, fan_in + 1))
+    # æƒé‡çŸ©é˜µä½¿ç”¨sinæ¥ä½œä¸ºè®¡ç®—å€¼
+    W = np.sin(range(1, fan_out * (fan_in + 1) + 1)
+               ).reshape(W_shape, order='F') / 10
     return W
+
+
+def predict(Theta1, Theta2, X):
+    m = X.shape[0]
+    a1 = np.hstack((np.ones((m, 1)), X))
+    z2 = sigmoid(a1@Theta1.T)
+    a2 = np.hstack((np.ones((m, 1)), z2))
+    z3 = sigmoid(a2@Theta2.T)
+    index = np.argmax(z3, axis=1)
+    return index
 
 
 if __name__ == '__main__':
     # load the data
     data = io.loadmat('./ex4data1.mat')
     X = data['X']
-    y = data['y']
+    y = data['y'].flatten()
 
     # plot the numbers
     rand_indices = np.random.permutation(X)
     sel = rand_indices[:100, :]
     # plot_data(sel)
 
-    # part1 load weight and
+    # part1 load weight and test the function
     weight = io.loadmat('ex4weights.mat')
     Theta1 = weight['Theta1']
     Theta2 = weight['Theta2']
@@ -156,27 +189,70 @@ if __name__ == '__main__':
     input_layer_size = 400
     hidden_layer_size = 25
     num_labels = 10
-    # ²»Ìí¼ÓÕıÔòÏî
+    # ä¸å¸¦æ­£åˆ™é¡¹
     lambda_ = 0
     J = nn_cost_funciton(nn_params,
                          input_layer_size,
                          hidden_layer_size,
                          num_labels,
                          X, y, lambda_)
-    # Ô¤¼ÆÖµÎª0.287629
+    # é¢„æœŸå€¼ä¸º0.287629
     print(J)
 
-    # Ìí¼ÓÕıÔòÏî
+    # æ·»åŠ æ­£åˆ™é¡¹
     lambda_ = 1
     J = nn_cost_funciton(nn_params,
                          input_layer_size,
                          hidden_layer_size,
                          num_labels,
                          X, y, lambda_)
-    # Ô¤ÆÚÖµÎª0.383770
+    # é¢„æœŸå€¼ä¸º0.383770
     print(J)
+    # å®éªŒsigmoid_gradientå‡½æ•°
+    print(sigmoid_gradient([-1, -0.5, 0, 0.5, 1]))
 
-    initial_Theta1 = rand_initial_weights(hidden_layer_size, input_layer_size)
+    input('next step')
+
+    # ç”ŸæˆçŸ©é˜µç”¨æ¥æ£€æŸ¥backgrad
+    check_nn_grandients()
+
+    lambda_ = 3
+    check_nn_grandients(lambda_)
+
+    # æ£€æŸ¥Jï¼Œé¢„æœŸå€¼ä¸º0.5756051
+    debug_J = nn_cost_funciton(nn_params, input_layer_size,
+                               hidden_layer_size, num_labels, X, y, lambda_)
+    print('debug_J:', debug_J)
+
+    input('next step')
+
+    # part2 find the best theta
+    def costFunc(p):
+        return nn_cost_funciton(p, input_layer_size, hidden_layer_size,
+                                num_labels, X, y, lambda_, True)
+
+    initial_Theta1 = rand_initial_weights(input_layer_size, hidden_layer_size)
     initial_Theta2 = rand_initial_weights(hidden_layer_size, num_labels)
-    nn_params = np.concatenate((initial_Theta1.reshape(-1, 1),
-                                initial_Theta2.reshape(-1, 1)))
+    initial_nn_params = np.concatenate((initial_Theta1.reshape(-1, 1),
+                                        initial_Theta2.reshape(-1, 1)))
+
+    lambda_ = 1
+    options = {'maxiter': 30, 'disp': True}
+    myargs = (input_layer_size, hidden_layer_size,
+              num_labels, X, y, lambda_, True)
+    # ä½¿ç”¨L-BFGS-Bç®—æ³•è¿›è¡Œä¼˜åŒ–ï¼Œå¾—å‡ºç»“æœ
+    result = minimize(nn_cost_funciton, method='L-BFGS-B', args=myargs,
+                      x0=initial_nn_params, jac=True, options=options)
+    result_nn_params = result['x']
+    Theta1_result = np.reshape(
+        result_nn_params[:hidden_layer_size * (input_layer_size + 1)],
+        (hidden_layer_size, input_layer_size + 1))
+    Theta2_result = np.reshape(
+        result_nn_params[hidden_layer_size * (input_layer_size + 1):],
+        (num_labels, hidden_layer_size + 1))
+
+    # å°†ç»“æœè¿›è¡Œå±•ç¤º
+    plot_data(Theta1_result[:, 1:])
+    predict_y = predict(Theta1_result, Theta2_result, X)
+    # å› ä¸ºpythonæ˜¯ä»¥0å¼€å§‹ä½œä¸ºç´¢å¼•ï¼Œæ‰€ä»¥æ ¹æ®ç»“æœç‰¹æ€§ï¼Œé¢„æµ‹ç»“æœæ•´ä½“+1
+    print(np.mean(predict_y+1 == y))
