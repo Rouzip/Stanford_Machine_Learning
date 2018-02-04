@@ -70,17 +70,17 @@ if __name__ == '__main__':
     # part1 email preprocessing
     file_contents = load_txt('./emailSample1.txt')
     word_indices = process_email(file_contents)
-    # print(word_indices)
-    # input('next step')
+    print(word_indices)
+    input('next step')
 
     # part2 feature extraction
     file_contents = load_txt('./emailSample1.txt')
     word_indices = process_email(file_contents)
     features = email_feature(word_indices)
 
-    # print('Length of feature vector: {}\n'.format(len(features)))
-    # print('Number of non-zero entries: {}\n'.format(np.sum(features > 0)))
-    # input('next step')
+    print('Length of feature vector: {}\n'.format(len(features)))
+    print('Number of non-zero entries: {}\n'.format(np.sum(features > 0)))
+    input('next step')
 
     # part3 test spam classification
     data = io.loadmat('./spamTrain.mat')
@@ -90,16 +90,16 @@ if __name__ == '__main__':
     model = SVC(C=C, kernel='linear')
     model.fit(X, y)
     result = model.predict(X)
-    # print('Training Accuracy: {}\n'.format(np.mean(result == y) * 100))
-    # input('next step')
+    print('Training Accuracy: {}\n'.format(np.mean(result == y) * 100))
+    input('next step')
 
     # part4 test spam classification
     data = io.loadmat('spamTest.mat')
     Xtest = data['Xtest']
     ytest = data['ytest'].flatten()
     result = model.predict(Xtest)
-    # print('Training Accuracy: {}\n'.format(np.mean(result == ytest) * 100))
-    # input('next step')
+    print('Training Accuracy: {}\n'.format(np.mean(result == ytest) * 100))
+    input('next step')
 
     # part5 top predictors spam
     weight = model.coef_[0]
