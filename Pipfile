@@ -15,6 +15,7 @@ pandas = "*"
 scipy = "*"
 pyecharts = "*"
 opencv-python = "*"
+nltk = "*"
 
 
 [dev-packages]

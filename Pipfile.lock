@@ -1,20 +1,20 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ac9c559187865a056b694b628011d3dacb755312d36dbf9afb44f0f0fca54dc5"
+            "sha256": "80d1127c4090e593ee06369f6f4be29c579d77cb38a9eb6b7c91f0ad75cab101"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
             "implementation_version": "3.6.3",
-            "os_name": "posix",
-            "platform_machine": "x86_64",
+            "os_name": "nt",
+            "platform_machine": "AMD64",
             "platform_python_implementation": "CPython",
-            "platform_release": "4.4.0-109-generic",
-            "platform_system": "Linux",
-            "platform_version": "#132-Ubuntu SMP Tue Jan 9 19:52:39 UTC 2018",
+            "platform_release": "10",
+            "platform_system": "Windows",
+            "platform_version": "10.0.16299",
             "python_full_version": "3.6.3",
             "python_version": "3.6",
-            "sys_platform": "linux"
+            "sys_platform": "win32"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -83,6 +83,13 @@
                 "sha256:725a3f12739d133adfa381e1b33bd70c6f64db453bfc536e148824816e568894"
             ],
             "version": "==2.1.2"
+        },
+        "nltk": {
+            "hashes": [
+                "sha256:2661f9971d983db314bbebd51ba770811a362c6597fd0f303bb1d3beadcb4834",
+                "sha256:8a3bad9ff7f67d2828a7915c2fab93e6ca910c2015ef40799e1805fccf2354e5"
+            ],
+            "version": "==3.2.5"
         },
         "numpy": {
             "hashes": [
