@@ -1,9 +1,9 @@
 from decimal import Decimal
-from collections import OrderedDict
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import io
+from scipy.optimize import minimize
 
 
 def cofi_costfunc(params, Y, R, num_users, num_movies,
@@ -83,9 +83,22 @@ def load_movie_list():
         i = 1
         for line in fp.readlines():
             line = line.strip()
-            idx, movie_name = line.split(' ')
-            movie_list[i] = movie_name
+            index = line.index(' ')
+            idx, movie_name = line[:index], line[index + 1:]
+            movie_list[int(idx) - 1] = movie_name
     return movie_list
+
+
+def normalize_rating(Y, R):
+    m, n = Y.shape
+    Y_mean = np.zeros((m, 1))
+    Y_norm = np.zeros(Y.shape)
+    for i in range(m):
+        idx = np.where(R[i, :] == 1)
+        Y_mean[i] = np.mean(Y[i, idx])
+        Y_norm[i, idx] = Y[i, idx] - Y_mean[i]
+    return Y_norm, Y_mean
+
 
 if __name__ == '__main__':
     # part1 load movie rating dataset
@@ -141,9 +154,71 @@ if __name__ == '__main__':
 
     # part6 entering rating for a new user
     movie_list = load_movie_list()
-    print(movie_list.keys())
+    my_ratings = np.zeros((1682, 1))
+    my_ratings[0] = 4
+    my_ratings[97] = 2
+    my_ratings[6] = 3
+    my_ratings[11] = 5
+    my_ratings[53] = 4
+    my_ratings[63] = 5
+    my_ratings[66] = 3
+    my_ratings[68] = 5
+    my_ratings[182] = 4
+    my_ratings[225] = 5
+    my_ratings[354] = 5
+    # for i in range(len(my_ratings)):
+    #     if my_ratings[i] > 0:
+    #         print('Rated {} for {}'.format(
+    #             int(my_ratings[i]), movie_list[i]))
+    # input('next step')
 
     # part7
     data = io.loadmat('./ex8_movies.mat')
     Y = data['Y']
     R = data['R']
+    Y = np.hstack((my_ratings, Y))
+    R = np.hstack((np.array(my_ratings != 0), R))
+    Y_norm, Y_mean = normalize_rating(Y, R)
+
+    num_users = Y.shape[1]
+    num_movies = Y.shape[0]
+    num_features = 10
+
+    X = np.random.randn(num_movies, num_features)
+    Theta = np.random.randn(num_users, num_features)
+
+    initial_parameters = np.vstack((
+        X.reshape(-1, 1, order='F'),
+        Theta.reshape(-1, 1, order='F')
+    ))
+    lambda_ = 10
+
+    def cost_func(p):
+        return cofi_costfunc(p, Y_norm, R, num_users, num_movies,
+                             num_features, lambda_)
+    myoptions = {'maxiter': 100, 'disp': False}
+    result = minimize(cost_func, initial_parameters,
+                      method='L-BFGS-B', options=myoptions, jac=True)
+    theta = result['x']
+    X = theta[:num_movies * num_features].reshape(
+        num_movies, num_features, order='F')
+    Theta = theta[num_movies * num_features:].reshape(
+        num_users, num_features, order='F')
+
+    # part8 recommendation for you
+    p = X@Theta.T
+    my_prediction = p[:, 0] + Y_mean.flatten()
+    movie_list = load_movie_list()
+    ix = my_prediction.argsort()[::-1]
+    print('\nTop recommendations for you:\n')
+    for i in range(10):
+        j = ix[i]
+        print(j)
+        print('Predicting rating {} for movie {}'.format(
+            my_prediction[j], movie_list[j]))
+
+    print('\n\nOriginal ratings provided:\n')
+    for i in range(len(my_ratings)):
+        if my_ratings[i] > 0:
+            print('Rated {} for {}'.format(
+                my_ratings[i], movie_list[i]))
