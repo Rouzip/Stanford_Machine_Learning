@@ -24,5 +24,5 @@ python 3.6+
 
 ## Introduction
 
-该项目为Stanford机器学习课程的相关代码，我将octave代码迁移到了python上，并记录了写代码过程中遇到的一些障碍。我对于机器学习刚刚入门，代码中如有错误请各位指教和
+该项目为Stanford机器学习课程的相关代码，我将octave代码迁移到了python上，并记录了写代码过程中遇到的一些障碍。我对于机器学习刚刚入门，代码中如有错误请各位指教。  
 代码中有借鉴https://github.com/lawlite19/MachineLearning_Python 和 https://github.com/arturomp/coursera-machine-learning-in-python
