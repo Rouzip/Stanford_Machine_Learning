@@ -7,6 +7,20 @@ This is my homework code,which just some footprints to record my hard.
 
 
 
-## ex1
+## Install
 
-这里是初步学习机器学习，使用线性回归对数据进行预测，对于损失可以画出图像，可以画出损失函数的等线图
+```shell
+$pipenv install
+$pipenv shell
+```
+
+全部代码都经过手动测试，可以正常运行
+
+## envirenment
+
+python 3.6+
+
+经过ubuntu16.04lts 和 win10测试
+
+## 
+

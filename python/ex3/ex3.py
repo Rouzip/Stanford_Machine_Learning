@@ -95,7 +95,7 @@ def one_vs_all(X, y, num_labels, lambda_):
         theta = optimize.minimize(lr_cost_function,
                                   x0=initial_theta,
                                   args=myargs,
-                                  options={'maxiter': 15, 'disp': True},
+                                  options={'maxiter': 13, 'disp': True},
                                   method='Newton-CG',
                                   jac=True)
         all_theta[i, :] = theta['x']

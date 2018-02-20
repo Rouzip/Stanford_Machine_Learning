@@ -224,6 +224,7 @@ if __name__ == '__main__':
 
     # part5 sigmoid函数梯度
     # 实验sigmoid_gradient函数
+    print('-1, -0.5, 0, 0.5, 1的gradient：')
     print(sigmoid_gradient([-1, -0.5, 0, 0.5, 1]))
     input('next step')
 

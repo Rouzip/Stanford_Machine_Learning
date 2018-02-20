@@ -49,7 +49,7 @@ if __name__ == '__main__':
     random.seed(time.time())
     # 从5000个图片之中选择一幅
     num = random.choice(range(5000))
-    plot_data(X[num, :].reshape((1, -1)))
     pred = predict(Theta1, Theta2, X[num, :].reshape((1, -1)))
     # 下标的原因，所以使用+1再%10
     print('数字为 ' + str((pred + 1) % 10))
+    plot_data(X[num, :].reshape((1, -1)))
